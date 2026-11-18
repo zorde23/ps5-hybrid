@@ -2,6 +2,7 @@
 #include <RuntimeLayout.hpp>
 #include <NativeModules.hpp>
 #include <relinker/pipeline/Conversion.hpp>
+#include <relinker/parsing/SelfUnwrapper.hpp>
 #include <Cli.hpp>
 #include <domain/Types.hpp>
 #include <io/FileReader.hpp>
@@ -44,8 +45,13 @@ struct ConvertedExecutable {
 ConvertedExecutable Convert(const Cli::Args& args, const std::string& inputPath, const std::string& absPath, const bool mainExecutable, const std::string& targetName, const std::vector<Relinker::GamePatch::PatchEntry>& patches, Cli::ConsoleProgress& progress) {
     Io::FileReader fileReader;
     Relinker::ConversionInput input;
-    Relinker::ElfReader(fileReader.ReadPrefix(inputPath, 0x40)).ValidateMagic();
-    input.Executable = fileReader.Read(inputPath);
+    if (Relinker::IsSelfContainer(fileReader.ReadPrefix(inputPath, 4))) {
+        input.Executable = Relinker::UnwrapSelf(fileReader.Read(inputPath));
+        std::cout << "Unwrapped SELF container: " << inputPath << '\n';
+    } else {
+        Relinker::ElfReader(fileReader.ReadPrefix(inputPath, 0x40)).ValidateMagic();
+        input.Executable = fileReader.Read(inputPath);
+    }
     input.InputPath = std::filesystem::absolute(Io::NativePath(inputPath)).lexically_normal();
     input.OutputPath = Io::NativePath(absPath);
     Cli::NativeModules modules;

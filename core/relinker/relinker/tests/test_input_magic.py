@@ -21,8 +21,9 @@ def main():
                                     capture_output=True, text=True, timeout=20)
             assert result.returncode == 2 and error in result.stderr and not output.exists(), (name, result)
 
-        convert("eboot.self", b"\x4f\x15\x3d\x1d" + bytes(0x1000), "The input is a SELF container, not an ELF")
-        convert("eboot.self.kernel", b"\x54\x14\xf5\xee" + bytes(0x1000), "The input is a SELF container, not an ELF")
+        convert("eboot.self", b"\x4f\x15\x3d\x1d" + bytes(0x1000), "no inner ELF header")
+        convert("eboot.self.kernel", b"\x54\x14\xf5\xee" + bytes(0x1000), "no inner ELF header")
+        convert("eboot.self.short", b"\x4f\x15\x3d\x1d" + bytes(0x10), "file is smaller than the SELF header area")
         convert("eboot.pkg", b"\x7fCNT" + bytes(0x1000), "Invalid ELF magic number: 7f 43 4e 54")
         convert("eboot.short", b"\x7fEL", "File too small for ELF header")
         unsupported_version = bytearray(64)

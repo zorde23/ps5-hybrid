@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """unwrap_self -- turn a decrypted SELF or fSELF container into a clean ELF.
 
-The relinker reads a plain ELF executable and skips SELF containers with a warning,
-so an eboot.bin or a *.prx taken from a title has to be unwrapped first. Two things
-differ inside a container:
+The relinker unwraps an eboot.bin or a *.prx itself (relinker/src/parsing/SelfUnwrapper.cpp,
+the same steps); this script writes the unwrapped ELF to a file. Two things differ
+inside a container:
 
   - The inner ELF program headers carry stale offsets. A SELF inserts its own
     metadata blocks between the segments, so the segment data sits at the offsets

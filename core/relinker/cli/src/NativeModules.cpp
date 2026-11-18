@@ -3,6 +3,8 @@
 #include <io/NativePath.hpp>
 #include <io/FileIdentity.hpp>
 #include <domain/ImportModule.hpp>
+#include <domain/Types.hpp>
+#include <relinker/parsing/SelfUnwrapper.hpp>
 #include <algorithm>
 #include <cstdint>
 #include <fstream>
@@ -102,10 +104,7 @@ NativeModules ReadModules(const std::filesystem::path& inputPath, const std::fil
             if (!entry.is_regular_file()) continue;
             if (Io::SameFile(entry.path(), inputPath)) continue;
             const auto header = ReadCandidateHeader(entry.path());
-            if (header.Elf) paths.push_back(entry.path());
-            else if (header.Self)
-                std::cout << "Skipping SELF container: " << entry.path().lexically_relative(root).generic_string()
-                          << " (unwrap it before relinking)\n";
+            if (header.Elf || header.Self) paths.push_back(entry.path());
         }
     }
     if (!unmatchedExclusions.empty()) throw Domain::RelinkerException("Excluded guest module file not found: " + *unmatchedExclusions.begin());
@@ -114,7 +113,20 @@ NativeModules ReadModules(const std::filesystem::path& inputPath, const std::fil
     result.Root = root;
     result.Directories = std::move(directories);
     result.RuntimeDirectories = std::move(runtimeDirectories);
-    for (const auto& path : paths) result.Modules.push_back({path, Io::FileReader().Read(Io::Utf8Path(path))});
+    for (const auto& path : paths) {
+        auto bytes = Io::FileReader().Read(Io::Utf8Path(path));
+        if (Relinker::IsSelfContainer(bytes)) {
+            const auto relative = path.lexically_relative(root).generic_string();
+            try {
+                bytes = Relinker::UnwrapSelf(bytes);
+            } catch (const Domain::RelinkerException& error) {
+                std::cout << "Skipping SELF container: " << relative << " (" << error.what() << ")\n";
+                continue;
+            }
+            std::cout << "Unwrapped SELF container: " << relative << '\n';
+        }
+        result.Modules.push_back({path, std::move(bytes)});
+    }
     for (const auto& [copy, kept] : RemoveBackupCopies(result.Modules))
         std::cout << "Skipping backup copy: " << copy.lexically_relative(root).generic_string() << " (same SONAME as "
                   << kept.lexically_relative(root).generic_string() << ")\n";
@@ -131,7 +143,6 @@ void ReportUnconvertedNeeded(const NativeModules& modules, const std::vector<std
     struct Found {
         std::filesystem::path Relative;
         std::string Name;
-        bool Self;
     };
     std::vector<Found> found;
     std::error_code error;
@@ -156,13 +167,12 @@ void ReportUnconvertedNeeded(const NativeModules& modules, const std::vector<std
         }
         const auto header = TryReadCandidateHeader(entry->path());
         if (!header || (!header->Self && !(header->Elf && header->Type == 0xfe18))) continue;
-        for (const auto& name : stem->second) found.push_back({entry->path().lexically_relative(modules.Root), name, header->Self});
+        for (const auto& name : stem->second) found.push_back({entry->path().lexically_relative(modules.Root), name});
     }
     std::sort(found.begin(), found.end(), [](const auto& left, const auto& right) { return std::tie(left.Relative, left.Name) < std::tie(right.Relative, right.Name); });
-    for (const auto& [relative, name, self] : found) {
+    for (const auto& [relative, name] : found) {
         const auto directory = relative.parent_path().generic_string();
-        out << "Needed module not converted: " << name << " at " << relative.generic_string() << "; add --module-dir " << (directory.empty() ? "." : directory)
-            << (self ? " and unwrap the SELF container" : "") << '\n';
+        out << "Needed module not converted: " << name << " at " << relative.generic_string() << "; add --module-dir " << (directory.empty() ? "." : directory) << '\n';
     }
 }
 

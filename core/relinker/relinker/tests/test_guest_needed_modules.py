@@ -104,7 +104,7 @@ def check_needed_outside(relinker, work):
     (case / "sce_module").mkdir(parents=True)
     (case / "sce_module" / "wrapped.prx").write_bytes(self_container)
     (case / "needed.prx").write_bytes(self_container)
-    assert convert(case) == [message + "needed.prx at needed.prx; add --module-dir . and unwrap the SELF container"]
+    assert convert(case) == [message + "needed.prx at needed.prx; add --module-dir ."]
 
     case = work / "outside-alias-nested"
     (case / "sce_module").mkdir(parents=True)

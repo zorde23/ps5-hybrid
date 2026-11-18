@@ -56,6 +56,7 @@ add_library(relinker_core STATIC
         ${CMAKE_CURRENT_SOURCE_DIR}/codegen/src/x86/MaskedStoreLowering.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/codegen/src/x86/AndnLowering.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/relinker/src/parsing/ElfReader.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/relinker/src/parsing/SelfUnwrapper.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/relinker/src/analysis/SyscallScanner.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/relinker/src/analysis/CallSiteResolver.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/relinker/src/analysis/CodeInstructionCollector.cpp
@@ -251,6 +252,15 @@ if(BUILD_TESTING)
         ${CMAKE_CURRENT_SOURCE_DIR}/relinker/include)
     add_test(NAME elf_reader_bounds COMMAND elf_reader_bounds_tests)
     set_tests_properties(elf_reader_bounds PROPERTIES TIMEOUT 20)
+
+    add_test_executable(self_unwrapper_tests
+        ${CMAKE_CURRENT_SOURCE_DIR}/relinker/tests/SelfUnwrapperTests.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/relinker/src/parsing/SelfUnwrapper.cpp)
+    target_include_directories(self_unwrapper_tests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/domain/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/relinker/include)
+    add_test(NAME self_unwrapper COMMAND self_unwrapper_tests)
+    set_tests_properties(self_unwrapper PROPERTIES TIMEOUT 20)
 
     add_test_executable(call_site_index_tests
         ${CMAKE_CURRENT_SOURCE_DIR}/relinker/tests/CallSiteIndexTests.cpp

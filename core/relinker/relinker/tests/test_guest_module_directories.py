@@ -152,7 +152,7 @@ def main():
                 (case / "prx" / "provider.prx").write_bytes(module_with_symbol(True))
                 result, output = convert(case, windows)
                 assert result.returncode == 0 and output.exists(), result.stderr
-                warning = "Skipping SELF container: sce_module/libc.prx (unwrap it before relinking)"
+                warning = "Skipping SELF container: sce_module/libc.prx (no inner ELF header)"
                 assert result.stdout.count(warning) == 1, result.stdout
                 assert {path.name for path in (case / "app0").rglob("*.guest.prx")} == {"provider.prx.guest.prx"}
                 result, output = convert(case, windows, ["--exclude-sce-module", "libc.prx"])
