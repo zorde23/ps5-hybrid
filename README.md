@@ -3,7 +3,7 @@
 Runs PS5 executables natively on Windows by joining two projects:
 
 - [AnyPS5](https://github.com/boykopovar/AnyPS5): the relinker that converts the executable to a native Windows program, the kernel and the system libraries.
-- [kyty-gpu-hybrid](https://github.com/PS5-Hybrid/kyty-gpu-hybrid) (submodule `3rdparty/kyty-gpu`): Kyty's GPU (command processor, shader recompiler, Vulkan renderer) built as `kyty_gpu.dll` and used as the graphics backend.
+- [kyty-gpu-hybrid](https://github.com/zorde23/kyty-gpu-hybrid) (submodule `3rdparty/kyty-gpu`): Kyty's GPU (command processor, shader recompiler, Vulkan renderer) built as `kyty_gpu.dll` and used as the graphics backend.
 
 No emulation of the CPU and no separate runtime process. This repository is the generic base: it holds nothing specific to any title. A project for one title is a fork of it that adds its own profile in `tools/hybrid-profiles/`.
 
@@ -18,7 +18,7 @@ No emulation of the CPU and no separate runtime process. This repository is the 
 ## Build and run
 
 ```powershell
-git clone --recursive https://github.com/PS5-Hybrid/ps5-hybrid
+git clone --recursive https://github.com/zorde23/ps5-hybrid
 powershell -ExecutionPolicy Bypass -File tools\build_hybrid.ps1
 powershell -ExecutionPolicy Bypass -File tools\build_hybrid.ps1 -Eboot C:\dump\eboot.bin -GameDir C:\dump -Output C:\hybrid
 ```
