@@ -69,5 +69,5 @@
 	url = https://github.com/nghttp2/nghttp2.git
 [submodule "3rdparty/kyty-gpu"]
 	path = 3rdparty/kyty-gpu
-	url = https://github.com/zorde23/kyty-gpu-hybrid.git
-	branch = hibrido
+	url = https://github.com/PS5-Hybrid/kyty-gpu-hybrid.git
+	branch = main
